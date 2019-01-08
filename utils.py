@@ -59,8 +59,8 @@ def get_dataset(images, labels, palette, resized_shape=[96, 96]):
 
     :param images: list of image file names
     :param labels: list of label file names
-    :param palette: label pixel according to each class
-    :param resized_shape: the dimensions in which we want to rescale our images
+    :param palette: label pixel for each class
+    :param resized_shape: rescale images to proper shape
     :returns: return a tf.data.Dataset
     """
     shuffle_size = len(images)
@@ -90,6 +90,7 @@ def generate_images(model, input_image, target_image, plots=1):
     assert plots <= input_image.shape[
         0], "plots number should be less than batch size"
 
+    classes = target_image.shape[-1].value
     prediction = model.predict(input_image)
     # prediction = model(input_image)
     plt.figure(figsize=(15, 15))
@@ -99,9 +100,9 @@ def generate_images(model, input_image, target_image, plots=1):
 
     for i in range(plots):
         plt.subplot(plots, 3, i * 3 + 1)
-        plt.imshow(input_image[i])
+        plt.imshow(input_image[i], vmin=0, vmax=classes)
         plt.subplot(plots, 3, i * 3 + 2)
-        plt.imshow(target_image[i])
+        plt.imshow(target_image[i], vmin=0, vmax=classes)
         plt.subplot(plots, 3, i * 3 + 3)
-        plt.imshow(prediction[i])
+        plt.imshow(prediction[i], vmin=0, vmax=classes)
     plt.show()

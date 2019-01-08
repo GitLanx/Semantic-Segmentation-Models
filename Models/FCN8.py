@@ -1,10 +1,10 @@
 from tensorflow.python.keras.layers import (Conv2D, Conv2DTranspose, Dropout,
                                             MaxPooling2D, Input, ZeroPadding2D,
-                                            Cropping2D, Softmax)
+                                            Cropping2D, Softmax, Add)
 from tensorflow.python.keras.models import Model
 
 
-class FCN16(Model):
+class FCN8(Model):
     def __init__(self, classes, input_shape):
         Model.__init__(self)
         self.classes = classes
@@ -54,7 +54,7 @@ class FCN16(Model):
         pool4_conv = Conv2D(
             filters=self.classes, kernel_size=1, padding='valid')(pool4)
         pool4_crop = self.crop(pool4_conv, up_conv1)
-        fuse1 = up_conv1 + pool4_crop
+        fuse1 = Add()([up_conv1, pool4_crop])
 
         up_conv2 = Conv2DTranspose(
             filters=self.classes, kernel_size=4, strides=2,
@@ -62,7 +62,7 @@ class FCN16(Model):
         pool3_conv = Conv2D(
             filters=self.classes, kernel_size=1, padding='valid')(pool3)
         pool3_crop = self.crop(pool3_conv, up_conv2)
-        fuse2 = up_conv2 + pool3_crop
+        fuse2 = Add()([up_conv2, pool3_crop])
 
         up_conv3 = Conv2DTranspose(
             filters=self.classes, kernel_size=16, strides=8,

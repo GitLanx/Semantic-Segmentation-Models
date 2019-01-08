@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 import os
 import argparse
@@ -7,23 +8,26 @@ from metrics import mean_iou
 from model_loader import load_model
 
 tf.enable_eager_execution()
+np.random.seed(1)
 tf.set_random_seed(1234)
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    '--model', type=str, default='UNet', help='Model to train for')
+    '--model', type=str, default='FCN32', help='Model to train for')
 
 # parameters
 classes = 14
 batch_size = 4
-epochs = 100
+epochs = 1
 palette = list(range(classes))
-resized_shape = [320, 400]
+resized_shape = [96, 96]
 plots = 4
 
 # choose model to train for
 args = parser.parse_args()
 model = load_model(args.model, resized_shape, classes)
+
+tf.keras.utils.plot_model(model, to_file=args.model + '.png', rankdir='LR')
 
 # dataset directory
 data_dir = r'C:\Users\lan\Desktop\毕业论文\数据集\数据库A(200)\FS_400x300/'

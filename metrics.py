@@ -1,5 +1,5 @@
 import tensorflow as tf
-import tensorflow.keras.backend as K
+from tensorflow.python.keras import backend as K
 
 
 def TP(y_true, y_pred):
@@ -43,12 +43,8 @@ def dice_coef(y_true, y_pred):
     return 2. / (1. / recall(y_true, y_pred) + 1. / precision(y_true, y_pred))
 
 
-def dice_coef_loss(y_true, y_pred):
-    return 1 - dice_coef(y_true, y_pred)
-
-
 def mean_iou(y_true, y_pred):
-    y_true = K.round(y_true)
+    # TP / (TP + FP + FN)
     y_pred = K.round(y_pred)
     intersection = K.sum(y_true * y_pred)
     union = K.sum((y_true + y_pred) - y_true * y_pred)
@@ -56,12 +52,9 @@ def mean_iou(y_true, y_pred):
 
 
 def pixel_accuracy(y_true, y_pred):
-    y_true = tf.reshape(y_true, [-1])
-    y_pred = tf.reshape(y_pred, [-1])
-    # y_true = K.around(y_true)
-    # y_pred = K.around(y_pred)
-    # return K.sum(y_true*y_pred)/K.sum(y_true)
-    return tf.reduce_sum(y_true == y_pred) / y_true.shape
+    y_pred = K.round(y_pred)
+    num = K.sum(y_true * y_pred)
+    return num / y_true.size
 
 
 def class_accuracy(y_true, y_pred, num_classes):
