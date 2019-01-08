@@ -27,7 +27,7 @@ plots = 4
 args = parser.parse_args()
 model = load_model(args.model, resized_shape, classes)
 
-tf.keras.utils.plot_model(model, to_file=args.model + '.png', rankdir='LR')
+# tf.keras.utils.plot_model(model, to_file=args.model + '.png')
 
 # dataset directory
 data_dir = r'C:\Users\lan\Desktop\毕业论文\数据集\数据库A(200)\FS_400x300/'
