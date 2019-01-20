@@ -3,4 +3,3 @@ __pycache__
 *.png
 logs
 cityscapes_loader.py
-data
