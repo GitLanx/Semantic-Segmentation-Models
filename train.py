@@ -13,13 +13,13 @@ tf.set_random_seed(1234)
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    '--model', type=str, default='FCN32', help='Model to train for')
+    '--model', type=str, default='UNet', help='Model to train for')
 
 # parameters
 classes = 14
 batch_size = 4
 epochs = 1
-palette = list(range(classes))
+palette = None
 resized_shape = [96, 96]
 plots = 4
 
@@ -42,13 +42,20 @@ mask = [os.path.join(mask_dir, mask_) for mask_ in mask]
 train_data, val_data, train_mask, val_mask = train_test_split(
     data, mask, test_size=0.2)
 
-train_dataset = get_dataset(train_data, train_mask, palette,
-                            resized_shape).batch(batch_size)
-val_dataset = get_dataset(val_data, val_mask, palette,
-                          resized_shape).batch(batch_size)
+train_dataset = get_dataset(
+    train_data,
+    train_mask,
+    classes,
+    resized_shape=resized_shape,
+    palette=palette).batch(batch_size)
+val_dataset = get_dataset(
+    val_data, val_mask, classes, resized_shape=resized_shape,
+    palette=palette).batch(batch_size)
 
 callbacks = [
     tf.keras.callbacks.EarlyStopping(patience=5, monitor='val_loss'),
+    # tf.keras.callbacks.LearningRateScheduler(
+    #     lambda epoch: 0.0001 + 0.02 * 0.5**(1 + epoch), verbose=True),
     tf.keras.callbacks.TensorBoard(log_dir='logs', write_graph=True)
 ]
 

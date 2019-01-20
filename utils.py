@@ -2,20 +2,24 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 
 
-def one_hot_encode(label, palette):
+def one_hot_encode(label, classes, palette):
     """change labels to one-hot encoding.
 
     :param label: labels
-    :param palette: label pixel
+    :param palette: use self-defined label if specified
     :returns: one-hot encoded labels
     """
-    one_hot_map = []
-    for colour in palette:
-        class_map = tf.reduce_all(tf.equal(label, colour), axis=-1)
-        one_hot_map.append(class_map)
+    if palette is None:
+        label = tf.squeeze(label, axis=-1)
+        one_hot_map = tf.one_hot(label, classes)
+    else:
+        one_hot_map = []
+        for colour in palette:
+            class_map = tf.reduce_all(tf.equal(label, colour), axis=-1)
+            one_hot_map.append(class_map)
 
-    one_hot_map = tf.stack(one_hot_map, axis=-1)
-    one_hot_map = tf.cast(one_hot_map, tf.float32)
+        one_hot_map = tf.stack(one_hot_map, axis=-1)
+        one_hot_map = tf.cast(one_hot_map, tf.float32)
 
     return one_hot_map
 
@@ -35,7 +39,7 @@ def load_image(file_name, resized_shape):
     return image
 
 
-def load_label(file_name, palette, resized_shape):
+def load_label(file_name, classes, resized_shape,  palette):
     """load labels.
 
     :param file_name: label file names
@@ -49,12 +53,12 @@ def load_label(file_name, palette, resized_shape):
         label,
         size=resized_shape,
         method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-    label = one_hot_encode(label, palette)
+    label = one_hot_encode(label, classes, palette)
 
     return label
 
 
-def get_dataset(images, labels, palette, resized_shape=[96, 96]):
+def get_dataset(images, labels, classes, resized_shape=[96, 96], palette=None):
     """Use tf.data.Dataset to read image files.
 
     :param images: list of image file names
@@ -70,7 +74,8 @@ def get_dataset(images, labels, palette, resized_shape=[96, 96]):
 
     labels = tf.data.Dataset.list_files(labels, shuffle=False)
     labels = labels.map(
-        lambda x: load_label(x, palette, resized_shape), num_parallel_calls=4)
+        lambda x: load_label(x, classes, resized_shape, palette),
+        num_parallel_calls=4)
 
     dataset = tf.data.Dataset.zip((images,
                                    labels)).shuffle(shuffle_size).repeat()
