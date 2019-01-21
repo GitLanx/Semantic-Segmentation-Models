@@ -142,18 +142,16 @@ class Metric:
 
 
 class ClassIoU(Callback):
-    def __init__(self, x, num_classes, val_take):
-        super().__init__()
-
+    def __init__(self, x, num_classes):
+        Callback.__init__(self)
         self.x = x
         self.num_classes = num_classes
-        self.val_take = val_take
 
     def on_train_end(self, logs=None):
         confusion_matrix = tf.cast(
             tf.zeros([self.num_classes, self.num_classes]), tf.int32)
-        for x, y_true in self.x.take(self.val_take):
-            y_pred = self.model.predict_on_batch(self.x)
+        for x, y_true in self.x:
+            y_pred = self.model.predict(x)
             y_true = tf.reshape(tf.argmax(y_true, axis=-1), [-1])
             y_pred = tf.reshape(tf.argmax(y_pred, axis=-1), [-1])
             confusion_matrix = tf.add(
@@ -170,4 +168,4 @@ class ClassIoU(Callback):
 
         iou = true_positive / (
             true_positive + false_positive + false_negative + 1e-10)
-        print("class IoU:", round(iou, 2))
+        print("class IoU:", np.around(iou, decimals=2))
