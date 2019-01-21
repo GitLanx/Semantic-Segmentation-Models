@@ -39,7 +39,7 @@ def load_image(file_name, resized_shape):
     return image
 
 
-def load_label(file_name, classes, resized_shape,  palette):
+def load_label(file_name, classes, resized_shape, palette):
     """load labels.
 
     :param file_name: label file names
@@ -58,7 +58,12 @@ def load_label(file_name, classes, resized_shape,  palette):
     return label
 
 
-def get_dataset(images, labels, classes, resized_shape=[96, 96], palette=None):
+def get_dataset(images,
+                labels,
+                classes,
+                dtype,
+                resized_shape=[96, 96],
+                palette=None):
     """Use tf.data.Dataset to read image files.
 
     :param images: list of image file names
@@ -76,10 +81,11 @@ def get_dataset(images, labels, classes, resized_shape=[96, 96], palette=None):
     labels = labels.map(
         lambda x: load_label(x, classes, resized_shape, palette),
         num_parallel_calls=4)
-
-    dataset = tf.data.Dataset.zip((images,
-                                   labels)).shuffle(shuffle_size).repeat()
-
+    if dtype == 'train':
+        dataset = tf.data.Dataset.zip((images,
+                                       labels)).shuffle(shuffle_size).repeat()
+    elif dtype == 'val' or 'test':
+        dataset = tf.data.Dataset.zip((images, labels))
     return dataset
 
 
@@ -96,8 +102,8 @@ def generate_images(model, input_image, target_image, plots=1):
         0], "plots number should be less than batch size"
 
     classes = target_image.shape[-1].value
-    prediction = model.predict(input_image)
-    # prediction = model(input_image)
+    # prediction = model.predict(input_image)
+    prediction = model(input_image)
     plt.figure(figsize=(15, 15))
 
     target_image = tf.argmax(target_image, axis=-1)
