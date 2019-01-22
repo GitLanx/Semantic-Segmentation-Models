@@ -40,8 +40,12 @@ class Metric:
     #         intersection, bins=self.num_classes, range=(1, self.num_classes))
 
     #     # Compute area union:
-    #     (area_pred, _) = np.histogram(y_pred, bins=self.num_classes, range=(1, self.num_classes))
-    #     (area_true, _) = np.histogram(y_true, bins=self.num_classes, range=(1, self.num_classes))
+    #     (area_pred, _) = np.histogram(y_pred,
+    #                                   bins=self.num_classes,
+    #                                   range=(1, self.num_classes))
+    #     (area_true, _) = np.histogram(y_true,
+    #                                   bins=self.num_classes,
+    #                                   range=(1, self.num_classes))
     #     area_union = area_pred + area_true - area_intersection
 
     #     return area_intersection / (area_union + 1e-10)
