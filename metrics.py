@@ -110,4 +110,6 @@ class ClassIoU(Callback):
 
         iou = true_positive / (
             true_positive + false_positive + false_negative + 1e-10)
-        print("class IoU:", np.around(iou, decimals=4))
+        iou = np.around(iou, decimals=4)
+        print("class IoU:", iou)
+        print('mIoU:', np.mean(iou[1:]))
