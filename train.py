@@ -14,52 +14,52 @@ tf.set_random_seed(1234)
 parser = argparse.ArgumentParser()
 parser.add_argument(
     '--model', type=str, default='UNet', help='Model to train for')
+parser.add_argument(
+    '-images', type=str, default='', help='path for training images')
+parser.add_argument(
+    '-labels', type=str, default='', help='path for training labels')
 
 # parameters
-classes = 14
+n_classes = 14
 batch_size = 4
-epochs = 1
+epochs = 10
 palette = None
 resized_shape = [96, 96]
 plots = 4
-iou = Metric(classes).iou
-acc = Metric(classes).accuracy
-
-# dataset directory
-data_dir = r'C:\Users\lan\Desktop\毕业论文\数据集\数据库A(200)\FS_400x300/'
-mask_dir = r'C:\Users\lan\Desktop\毕业论文\数据集\数据库A(200)\label_png/'
+iou = Metric(n_classes).iou
+acc = Metric(n_classes).accuracy
 
 # choose model to train for
 args = parser.parse_args()
-model = load_model(args.model, resized_shape, classes)
+model = load_model(args.model, resized_shape, n_classes)
 
 # tf.keras.utils.plot_model(model, to_file=args.model + '.png')
 
 # load dataset
-data = os.listdir(data_dir)
-data = [os.path.join(data_dir, data_) for data_ in data]
-mask = os.listdir(mask_dir)
-mask = [os.path.join(mask_dir, mask_) for mask_ in mask]
+data = os.listdir(args.images)
+data = [os.path.join(args.images, _data) for _data in data]
+label = os.listdir(args.labels)
+label = [os.path.join(args.labels, _label) for _label in label]
 
-train_data, val_data, train_mask, val_mask = train_test_split(
-    data, mask, test_size=0.2)
+train_data, val_data, train_label, val_label = train_test_split(
+    data, label, test_size=0.2)
 
 train_dataset = get_dataset(
     train_data,
-    train_mask,
-    classes,
+    train_label,
+    n_classes,
     dtype='train',
     resized_shape=resized_shape,
     palette=palette).batch(batch_size)
 val_dataset = get_dataset(
     val_data,
-    val_mask,
-    classes,
+    val_label,
+    n_classes,
     dtype='val',
     resized_shape=resized_shape,
     palette=palette).batch(batch_size)
 
-iou_callback = ClassIoU(val_dataset, classes)
+iou_callback = ClassIoU(val_dataset, n_classes)
 
 callbacks = [
     # tf.keras.callbacks.EarlyStopping(patience=5, monitor='val_loss'),
