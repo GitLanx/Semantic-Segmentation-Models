@@ -73,12 +73,12 @@ def generate_images(model, input_image, target_image, plots=1):
     plt.show()
 
 
-def parse_function(filename, label, n_classes, resized_shape, palette):
+def parse_function(images, labels, n_classes, resized_shape, palette):
     """
     function for parse images and labels
     """
-    images = load_image(filename, resized_shape)
-    labels = load_label(filename, n_classes, resized_shape, palette)
+    images = load_image(images, resized_shape)
+    labels = load_label(labels, n_classes, resized_shape, palette)
     return images, labels
 
 
