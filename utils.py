@@ -33,7 +33,8 @@ def get_dataset(images,
     dataset = tf.data.Dataset.from_tensor_slices((images, labels))
     dataset = dataset.shuffle(shuffle_size)
     dataset = dataset.map(
-        lambda x, y: parse_function(x, y, n_classes, resized_shape, palette))
+        lambda x, y: parse_function(x, y, n_classes, resized_shape, palette),
+        num_parallel_calls=4)
     if dtype == 'train':
         # dataset = tf.data.Dataset.zip((images,
         #                                labels)).shuffle(shuffle_size).repeat()
