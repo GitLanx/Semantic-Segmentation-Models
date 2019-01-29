@@ -1,7 +1,7 @@
+import argparse
+import glob
 import numpy as np
 import tensorflow as tf
-import os
-import argparse
 from sklearn.model_selection import train_test_split
 from utils import get_dataset, generate_images
 from metrics import Metric, ClassIoU
@@ -15,9 +15,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     '--model', type=str, default='UNet', help='Model to train for')
 parser.add_argument(
-    '-images', type=str, default='', help='path for training images')
+    '--images', type=str, default='', help='''path for training images,'''
+                                           '''using a matching pattern,'''
+                                           '''e.g., "./images/*/*train.png"''')
 parser.add_argument(
-    '-labels', type=str, default='', help='path for training labels')
+    '--labels', type=str, default='', help='''path for training labels,'''
+                                           '''using a matching pattern,'''
+                                           '''e.g., "./labels/*/*train.png"''')
 
 # parameters
 n_classes = 14
@@ -36,13 +40,16 @@ model = load_model(args.model, resized_shape, n_classes)
 # tf.keras.utils.plot_model(model, to_file=args.model + '.png')
 
 # load dataset
-data = os.listdir(args.images)
-data = [os.path.join(args.images, _data) for _data in data]
-label = os.listdir(args.labels)
-label = [os.path.join(args.labels, _label) for _label in label]
+# data = os.listdir(args.images)
+# data = [os.path.join(args.images, _data) for _data in data]
+# label = os.listdir(args.labels)
+# label = [os.path.join(args.labels, _label) for _label in label]
+
+data_list = glob.glob(args.images)
+label_list = glob.glob(args.labels)
 
 train_data, val_data, train_label, val_label = train_test_split(
-    data, label, test_size=0.2)
+    data_list, label_list, test_size=0.2)
 
 train_dataset = get_dataset(
     train_data,
@@ -76,7 +83,7 @@ model.compile(
 model.fit(
     train_dataset,
     epochs=epochs,
-    steps_per_epoch=len(data) // batch_size,
+    steps_per_epoch=len(train_data) // batch_size,
     callbacks=callbacks)
 
 for image, label in val_dataset.take(1):
