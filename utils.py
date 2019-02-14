@@ -1,13 +1,40 @@
+import os
 import tensorflow as tf
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
+def data_loader(train_data,
+                train_labels,
+                val_data,
+                val_labels,
+                n_classes,
+                batch_size,
+                resized_shape):
+    if val_data is None:
+        data = os.listdir(train_data)
+        data = [os.path.join(train_data, _data) for _data in data]
+        label = os.listdir(train_labels)
+        label = [os.path.join(train_labels, _label) for _label in label]
+
+        # Set random_state to make sure models are validated on the same validation images.
+        train_data, val_data, train_label, val_label = train_test_split(
+            data, label, test_size=0.2, random_state=1234)
+        train_dataset = get_dataset(
+            train_data,
+            train_label,
+            n_classes,
+            resized_shape=resized_shape).batch(batch_size)
+        val_dataset = get_dataset(
+            val_data,
+            val_label,
+            n_classes,
+            resized_shape=resized_shape).batch(batch_size)
+        return train_dataset, val_dataset
 
 def get_dataset(images,
                 labels,
                 n_classes,
-                dtype,
-                resized_shape=[96, 96],
-                palette=None):
+                resized_shape=[96, 96]):
     """Use tf.data.Dataset to read image files.
 
     :param images: list of image filenames
@@ -33,16 +60,9 @@ def get_dataset(images,
     dataset = tf.data.Dataset.from_tensor_slices((images, labels))
     dataset = dataset.shuffle(shuffle_size)
     dataset = dataset.map(
-        lambda x, y: parse_function(x, y, n_classes, resized_shape, palette),
+        lambda x, y: parse_function(x, y, n_classes, resized_shape),
         num_parallel_calls=4)
-    if dtype == 'train':
-        # dataset = tf.data.Dataset.zip((images,
-        #                                labels)).shuffle(shuffle_size).repeat()
-        dataset = dataset.repeat()
-        return dataset
-    elif dtype == 'val' or 'test':
-        # dataset = tf.data.Dataset.zip((images, labels))
-        return dataset
+    return dataset
 
 
 def generate_images(model, input_image, target_image, plots=1):
@@ -74,33 +94,33 @@ def generate_images(model, input_image, target_image, plots=1):
     plt.show()
 
 
-def parse_function(images, labels, n_classes, resized_shape, palette):
+def parse_function(images, labels, n_classes, resized_shape):
     """
     function for parse images and labels
     """
     images = load_image(images, resized_shape)
-    labels = load_label(labels, n_classes, resized_shape, palette)
+    labels = load_label(labels, n_classes, resized_shape)
     return images, labels
 
 
-def one_hot_encode(label, n_classes, palette):
+def one_hot_encode(label, n_classes):
     """change labels to one-hot encoding.
 
     :param label: labels
     :param palette: use self-defined label if specified
     :returns: one-hot encoded labels
     """
-    if palette is None:
-        label = tf.squeeze(label, axis=-1)
-        one_hot_map = tf.one_hot(label, n_classes)
-    else:
-        one_hot_map = []
-        for colour in palette:
-            class_map = tf.reduce_all(tf.equal(label, colour), axis=-1)
-            one_hot_map.append(class_map)
+    label = tf.squeeze(label, axis=-1)
+    one_hot_map = tf.one_hot(label, n_classes)
 
-        one_hot_map = tf.stack(one_hot_map, axis=-1)
-        one_hot_map = tf.cast(one_hot_map, tf.float32)
+    # another one hot method using palette
+    # one_hot_map = []
+    # for colour in palette:
+    #     class_map = tf.reduce_all(tf.equal(label, colour), axis=-1)
+    #     one_hot_map.append(class_map)
+
+    # one_hot_map = tf.stack(one_hot_map, axis=-1)
+    # one_hot_map = tf.cast(one_hot_map, tf.float32)
 
     return one_hot_map
 
@@ -120,7 +140,7 @@ def load_image(filename, resized_shape):
     return image
 
 
-def load_label(filename, n_classes, resized_shape, palette):
+def load_label(filename, n_classes, resized_shape):
     """load labels.
 
     :param filename: label filenames
@@ -134,6 +154,6 @@ def load_label(filename, n_classes, resized_shape, palette):
         label,
         size=resized_shape,
         method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-    label = one_hot_encode(label, n_classes, palette)
+    label = one_hot_encode(label, n_classes)
 
     return label
