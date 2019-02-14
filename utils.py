@@ -3,13 +3,19 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
-def data_loader(train_data,
-                train_labels,
-                val_data,
-                val_labels,
-                n_classes,
-                batch_size,
-                resized_shape):
+
+def data_loader(train_data, train_labels, val_data, val_labels, n_classes,
+                batch_size, resized_shape):
+    '''load data
+    
+    :param train_data: root of training data
+    :param train_labels: root of training labels
+    :param val_data: root of validation data, if None, take 20% of train_data as val_data
+    :param val_labels: root of validation labels
+    :param n_classes: number of classes
+    :param batch_size: number of images in each batch
+    :param resized_shape: resize input data to proper size
+    :returns: return tf.data.Dataset for training and validation'''
     if val_data is None:
         data = os.listdir(train_data)
         data = [os.path.join(train_data, _data) for _data in data]
@@ -19,23 +25,35 @@ def data_loader(train_data,
         # Set random_state to make sure models are validated on the same validation images.
         train_data, val_data, train_label, val_label = train_test_split(
             data, label, test_size=0.2, random_state=1234)
+
         train_dataset = get_dataset(
-            train_data,
-            train_label,
-            n_classes,
-            resized_shape=resized_shape).batch(batch_size)
+            train_data, train_label, n_classes, batch_size,
+            resized_shape=resized_shape)
         val_dataset = get_dataset(
-            val_data,
-            val_label,
-            n_classes,
-            resized_shape=resized_shape).batch(batch_size)
+            val_data, val_label, n_classes, batch_size,
+            resized_shape=resized_shape)
+        return train_dataset, val_dataset
+    else:
+        train_data = os.listdir(train_data)
+        train_data = [os.path.join(train_data, data) for data in train_data]
+        train_label = os.listdir(train_label)
+        train_label = [os.path.join(train_label, label) for label in train_label]
+        val_data = os.listdir(val_data)
+        val_data = [os.path.join(val_data, data) for data in val_data]
+        val_label = os.listdir(val_label)
+        val_label = [os.path.join(val_label, label) for label in val_label]
+        
+        train_dataset = get_dataset(
+            train_data, train_label, n_classes, batch_size,
+            resized_shape=resized_shape)
+        val_dataset = get_dataset(
+            val_data, val_label, n_classes, batch_size,
+            resized_shape=resized_shape)
         return train_dataset, val_dataset
 
-def get_dataset(images,
-                labels,
-                n_classes,
-                resized_shape=[96, 96]):
-    """Use tf.data.Dataset to read image files.
+
+def get_dataset(images, labels, n_classes, batch_size, resized_shape=[96, 96]):
+    """Use tf.data.Dataset to read image and labels.
 
     :param images: list of image filenames
     :param labels: list of label filenames
@@ -62,7 +80,7 @@ def get_dataset(images,
     dataset = dataset.map(
         lambda x, y: parse_function(x, y, n_classes, resized_shape),
         num_parallel_calls=4)
-    return dataset
+    return dataset.batch(batch_size)
 
 
 def generate_images(model, input_image, target_image, plots=1):
