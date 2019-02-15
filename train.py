@@ -19,7 +19,7 @@ parser.add_argument('--train_labels', type=str, default='', help='Path for train
 parser.add_argument('--val_data', type=str, default=None, help='Path for validation images, if not specified, val_data will sample from train_data')
 parser.add_argument('--val_labels', type=str, default=None, help='Path for validation labels, if not specified, val_labels will sample from train_labels')
 parser.add_argument('--batch_size', type=int, default=4, help='Number of images in each batch')
-parser.add_argument('--epochs', type=int, default=1, help='Number of epochs')
+parser.add_argument('--epochs', type=int, default=10, help='Number of epochs')
 parser.add_argument('--n_classes', type=int, default=14, help='Number of classes, including void class or background')
 parser.add_argument('--resized_height', type=int, default=96, help='Height of resized input')
 parser.add_argument('--resized_width', type=int, default=96, help='Width of resized input')
@@ -33,9 +33,9 @@ train_data = args.train_data
 train_labels = args.train_labels
 val_data = args.val_data
 val_labels = args.val_labels
-
 iou = Metric(n_classes).iou
 acc = Metric(n_classes).accuracy
+
 model = load_model(args.model, resized_shape, n_classes)
 
 # tf.keras.utils.plot_model(model, to_file=args.model + '.png')
