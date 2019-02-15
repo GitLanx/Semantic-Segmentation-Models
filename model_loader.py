@@ -15,5 +15,6 @@ def load_model(model_name, input_shape, classes):
         model = FCN8.FCN8(classes, input_shape).build()
     elif model_name == 'UNet':
         model = UNet.UNet(classes).build()
-
+    else:
+        raise ValueError('Unsupported model type')
     return model
