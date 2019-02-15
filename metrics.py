@@ -6,7 +6,6 @@ import numpy as np
 class Metric:
     """
     adapted from:
-    https://github.com/CSAILVision/semantic-segmentation-pytorch/blob/master/utils.py
     https://github.com/davidtvs/PyTorch-ENet/blob/master/metric/iou.py
     """
 
@@ -16,9 +15,10 @@ class Metric:
 
     def accuracy(self, y_true, y_pred):
         """
-        return pixel accuracy
+        return mean class accuracy excluding void class
         """
-        return tf.py_func(self._cal_pix_acc, [y_true, y_pred], [tf.float32])
+        return tf.py_func(self._cal_per_cls_acc, [y_true, y_pred],
+                          [tf.float32])
 
     def iou(self, y_true, y_pred):
         """
@@ -26,35 +26,10 @@ class Metric:
         """
         return tf.py_func(self._cal_miou, [y_true, y_pred], [tf.float32])
 
-    # def _cal_class_miou(self, y_true, y_pred):
-    #     # a different way of calculate miou
-    #     y_pred = np.round(y_pred)
-    #     y_true = np.argmax(y_true, axis=-1)
-    #     y_pred = np.argmax(y_pred, axis=-1)
-
-    #     y_pred = y_pred * (y_true > 0)
-
-    #     # Compute area intersection:
-    #     intersection = y_pred * (y_pred == y_true)
-    #     (area_intersection, _) = np.histogram(
-    #         intersection, bins=self.num_classes, range=(1, self.num_classes))
-
-    #     # Compute area union:
-    #     (area_pred, _) = np.histogram(y_pred,
-    #                                   bins=self.num_classes,
-    #                                   range=(1, self.num_classes))
-    #     (area_true, _) = np.histogram(y_true,
-    #                                   bins=self.num_classes,
-    #                                   range=(1, self.num_classes))
-    #     area_union = area_pred + area_true - area_intersection
-
-    #     return area_intersection / (area_union + 1e-10)
-
-    def _cal_pix_acc(self, y_true, y_pred):
+    def _cal_per_cls_acc(self, y_true, y_pred):
         self._cal_conf_mat(y_true, y_pred)
-        overall_acc = np.diag(
-            self.conf_mat).sum() / (self.conf_mat.sum() + 1e-10)
-        return overall_acc.astype(np.float32)
+        per_cls_acc = np.diag(self.conf_mat) / (self.conf_mat.sum(1) + 1e-10)
+        return np.nanmean(per_cls_acc[1:]).astype(np.float32)
 
     def _cal_miou(self, y_true, y_pred):
         self._cal_conf_mat(y_true, y_pred)
@@ -73,26 +48,23 @@ class Metric:
         y_pred = np.argmax(y_pred, axis=-1)
         y_true = y_true.ravel()
         y_pred = y_pred.ravel()
-        x = y_pred + self.num_classes * y_true
-        bincount_2d = np.bincount(
-            x.astype(np.int32), minlength=self.num_classes**2)
-        assert bincount_2d.size == self.num_classes**2
-        self.conf_mat = bincount_2d.reshape((self.num_classes,
-                                             self.num_classes))
+        self.conf_mat = tf.confusion_matrix(y_true, y_pred, self.num_classes)
+        self.conf_mat = np.asarray(self.conf_mat)
         self.conf_mat[:, 0] = 0
         self.conf_mat[0, :] = 0
 
 
 class ClassIoU(Callback):
-    def __init__(self, x, num_classes):
+    def __init__(self, x, num_classes, take):
         Callback.__init__(self)
         self.x = x
         self.num_classes = num_classes
+        self.take = take
 
     def on_train_end(self, logs=None):
         confusion_matrix = tf.cast(
             tf.zeros([self.num_classes, self.num_classes]), tf.int32)
-        for x, y_true in self.x:
+        for x, y_true in self.x.take(self.take):
             y_pred = self.model.predict(x)
             y_true = tf.reshape(tf.argmax(y_true, axis=-1), [-1])
             y_pred = tf.reshape(tf.argmax(y_pred, axis=-1), [-1])
@@ -111,5 +83,5 @@ class ClassIoU(Callback):
         iou = true_positive / (
             true_positive + false_positive + false_negative + 1e-10)
         iou = np.around(iou, decimals=4)
-        print("class IoU:", iou)
-        print('mIoU:', np.mean(iou[1:]))
+        print("class IoU:", iou[1:])
+        print('mIoU:', np.nanmean(iou[1:]))
