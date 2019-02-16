@@ -74,7 +74,7 @@ callbacks = [
     # tf.keras.callbacks.EarlyStopping(patience=5, monitor='val_loss'),
     # tf.keras.callbacks.LearningRateScheduler(
     #     lambda epoch: 0.0001 + 0.02 * 0.5**(1 + epoch), verbose=True),
-    tf.keras.callbacks.TensorBoard(log_dir='logs', write_graph=True),
+    # tf.keras.callbacks.TensorBoard(log_dir='logs', write_graph=True),
     iou_callback
 ]
 
@@ -91,8 +91,23 @@ History = model.fit(
     validation_steps=len(val_data) // batch_size,
     callbacks=callbacks)
 
-plt.plot(History.history['loss'], label='train')
-plt.plot(History.history['val_loss'], label='test')
+plt.figure(figsize=(6, 6))
+plt.subplot(211)
+plt.plot(History.history['loss'], label='train_loss')
+plt.plot(History.history['val_loss'], label='val_loss')
+plt.title('train loss vs validation loss ')
+plt.ylabel('Loss')
+plt.xlabel('Epochs')
+plt.legend()
+
+plt.subplot(212)
+plt.plot(History.history['iou'], label='train_iou')
+plt.plot(History.history['val_iou'], label='val_iou')
+plt.title('train iou vs validation iou')
+plt.ylabel('mIoU')
+plt.xlabel('Epochs')
+plt.legend()
+plt.tight_layout()
 plt.show()
 
 for image, label in val_dataset.take(1):
