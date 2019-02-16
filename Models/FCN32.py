@@ -1,7 +1,7 @@
 from tensorflow.python.keras.layers import (Conv2D, Conv2DTranspose, Dropout,
                                             MaxPooling2D, Input, ZeroPadding2D,
                                             Cropping2D, Softmax)
-from tensorflow.python.keras.applications.vgg16 import VGG16
+from tensorflow.python.keras.applications import VGG16
 from tensorflow.python.keras.models import Model
 
 

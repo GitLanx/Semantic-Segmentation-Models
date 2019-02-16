@@ -1,6 +1,7 @@
 from tensorflow.python.keras.layers import (Conv2D, Conv2DTranspose, Dropout,
                                             MaxPooling2D, Input, ZeroPadding2D,
                                             Cropping2D, Softmax, Add)
+from tensorflow.python.keras.applications import VGG16
 from tensorflow.python.keras.models import Model
 
 
@@ -14,34 +15,38 @@ class FCN16(Model):
     def build(self):
         inputs = Input(shape=(self.height, self.width, 3))
         zp = ZeroPadding2D(100)(inputs)
-        conv1 = Conv2D(64, 3, activation='relu', padding='same')(zp)
-        conv1 = Conv2D(64, 3, activation='relu', padding='same')(conv1)
-        pool1 = MaxPooling2D((2, 2), strides=(2, 2))(conv1)
 
-        # Block 2
-        conv2 = Conv2D(128, 3, activation='relu', padding='same')(pool1)
-        conv2 = Conv2D(128, 3, activation='relu', padding='same')(conv2)
-        pool2 = MaxPooling2D((2, 2), strides=(2, 2))(conv2)
+        vgg16 = VGG16(include_top=False, weights='imagenet', input_tensor=zp)
 
-        # Block 3
-        conv3 = Conv2D(256, 3, activation='relu', padding='same')(pool2)
-        conv3 = Conv2D(256, 3, activation='relu', padding='same')(conv3)
-        conv3 = Conv2D(256, 3, activation='relu', padding='same')(conv3)
-        pool3 = MaxPooling2D((2, 2), strides=(2, 2))(conv3)
+        # conv1 = Conv2D(64, 3, activation='relu', padding='same')(zp)
+        # conv1 = Conv2D(64, 3, activation='relu', padding='same')(conv1)
+        # pool1 = MaxPooling2D((2, 2), strides=(2, 2))(conv1)
 
-        # Block 4
-        conv4 = Conv2D(512, 3, activation='relu', padding='same')(pool3)
-        conv4 = Conv2D(512, 3, activation='relu', padding='same')(conv4)
-        conv4 = Conv2D(512, 3, activation='relu', padding='same')(conv4)
-        pool4 = MaxPooling2D((2, 2), strides=(2, 2))(conv4)
+        # # Block 2
+        # conv2 = Conv2D(128, 3, activation='relu', padding='same')(pool1)
+        # conv2 = Conv2D(128, 3, activation='relu', padding='same')(conv2)
+        # pool2 = MaxPooling2D((2, 2), strides=(2, 2))(conv2)
 
-        # Block 5
-        conv5 = Conv2D(512, 3, activation='relu', padding='same')(pool4)
-        conv5 = Conv2D(512, 3, activation='relu', padding='same')(conv5)
-        conv5 = Conv2D(512, 3, activation='relu', padding='same')(conv5)
-        pool5 = MaxPooling2D((2, 2), strides=(2, 2))(conv5)
+        # # Block 3
+        # conv3 = Conv2D(256, 3, activation='relu', padding='same')(pool2)
+        # conv3 = Conv2D(256, 3, activation='relu', padding='same')(conv3)
+        # conv3 = Conv2D(256, 3, activation='relu', padding='same')(conv3)
+        # pool3 = MaxPooling2D((2, 2), strides=(2, 2))(conv3)
 
-        fc6 = (Conv2D(4096, 7, activation='relu', padding='valid'))(pool5)
+        # # Block 4
+        # conv4 = Conv2D(512, 3, activation='relu', padding='same')(pool3)
+        # conv4 = Conv2D(512, 3, activation='relu', padding='same')(conv4)
+        # conv4 = Conv2D(512, 3, activation='relu', padding='same')(conv4)
+        # pool4 = MaxPooling2D((2, 2), strides=(2, 2))(conv4)
+
+        # # Block 5
+        # conv5 = Conv2D(512, 3, activation='relu', padding='same')(pool4)
+        # conv5 = Conv2D(512, 3, activation='relu', padding='same')(conv5)
+        # conv5 = Conv2D(512, 3, activation='relu', padding='same')(conv5)
+        # pool5 = MaxPooling2D((2, 2), strides=(2, 2))(conv5)
+
+        fc6 = (Conv2D(4096, 7, activation='relu',
+                      padding='valid'))(vgg16.output)
         drop6 = Dropout(0.5)(fc6)
         fc7 = (Conv2D(4096, 1, activation='relu', padding='valid'))(drop6)
         drop7 = Dropout(0.5)(fc7)
@@ -52,7 +57,8 @@ class FCN16(Model):
             filters=self.classes, kernel_size=4, strides=2,
             use_bias=False)(fc8)
         pool4_conv = Conv2D(
-            filters=self.classes, kernel_size=1, padding='valid')(pool4)
+            filters=self.classes, kernel_size=1,
+            padding='valid')(vgg16.get_layer("block4_pool").output)
         pool4_crop = self.crop(pool4_conv, up_conv1)
         fuse = Add()([up_conv1, pool4_crop])
 
