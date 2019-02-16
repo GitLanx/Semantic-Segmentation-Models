@@ -108,9 +108,13 @@ def load_image(filename, resized_shape):
     :returns: images
     """
     image = tf.read_file(filename)
-    image = tf.image.decode_png(image)
+    image = tf.cond(
+        tf.image.is_jpeg(image),
+        lambda: tf.image.decode_jpeg(image),
+        lambda: tf.image.decode_png(image))
     image = tf.image.convert_image_dtype(image, tf.float32)
-    image = tf.image.resize_images(image, size=resized_shape)
+    image = tf.image.resize_images(
+        image, size=resized_shape, method=tf.image.ResizeMethod.AREA)
 
     return image
 
