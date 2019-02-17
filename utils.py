@@ -114,7 +114,10 @@ def load_image(filename, resized_shape):
         lambda: tf.image.decode_png(image))
     image = tf.image.convert_image_dtype(image, tf.float32)
     image = tf.image.resize_images(
-        image, size=resized_shape, method=tf.image.ResizeMethod.BILINEAR)
+        image,
+        size=resized_shape,
+        method=tf.image.ResizeMethod.BILINEAR,
+        align_corners=True)
 
     return image
 
@@ -132,7 +135,8 @@ def load_label(filename, n_classes, resized_shape):
     label = tf.image.resize_images(
         label,
         size=resized_shape,
-        method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+        method=tf.image.ResizeMethod.NEAREST_NEIGHBOR,
+        align_corners=True)
     label = one_hot_encode(label, n_classes)
 
     return label
