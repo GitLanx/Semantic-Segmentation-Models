@@ -50,16 +50,15 @@ class FCN32(Model):
                       padding='valid'))(pretrained_model.output)
         drop6 = Dropout(0.5)(fc6)
         fc7 = (Conv2D(4096, 1, activation='relu', padding='valid'))(drop6)
-        drop6 = Dropout(0.5)(fc7)
-        fc8 = (Conv2D(self.classes, 1, activation='relu',
-                      padding='valid'))(drop6)
+        drop7 = Dropout(0.5)(fc7)
+        score_fr = (Conv2D(self.classes, 1, padding='valid'))(drop7)
 
-        up_conv = Conv2DTranspose(
+        upscore = Conv2DTranspose(
             self.classes,
             kernel_size=(64, 64),
             strides=(32, 32),
-            use_bias=False)(fc8)
-        crop = self.crop(up_conv, inputs)
+            use_bias=False)(score_fr)
+        crop = self.crop(upscore, inputs)
 
         out = Softmax()(crop)
         model = Model(inputs=inputs, outputs=out)
