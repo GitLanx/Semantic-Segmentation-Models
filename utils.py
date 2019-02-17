@@ -114,7 +114,7 @@ def load_image(filename, resized_shape):
         lambda: tf.image.decode_png(image))
     image = tf.image.convert_image_dtype(image, tf.float32)
     image = tf.image.resize_images(
-        image, size=resized_shape, method=tf.image.ResizeMethod.AREA)
+        image, size=resized_shape, method=tf.image.ResizeMethod.BILINEAR)
 
     return image
 
