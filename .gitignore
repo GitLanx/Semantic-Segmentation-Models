@@ -4,3 +4,4 @@ __pycache__
 logs
 cityscapes_loader.py
 *.cmd
+voc_*.py
