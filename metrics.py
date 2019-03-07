@@ -17,14 +17,14 @@ class Metric:
         """
         return mean class accuracy excluding void class
         """
-        return tf.py_func(self._cal_per_cls_acc, [y_true, y_pred],
+        return tf.compat.v1.py_func(self._cal_per_cls_acc, [y_true, y_pred],
                           [tf.float32])
 
     def iou(self, y_true, y_pred):
         """
         return mean iou excluding void class
         """
-        return tf.py_func(self._cal_miou, [y_true, y_pred], [tf.float32])
+        return tf.compat.v1.py_func(self._cal_miou, [y_true, y_pred], [tf.float32])
 
     def _cal_per_cls_acc(self, y_true, y_pred):
         self._cal_conf_mat(y_true, y_pred)
@@ -48,7 +48,7 @@ class Metric:
         y_pred = np.argmax(y_pred, axis=-1)
         y_true = y_true.ravel()
         y_pred = y_pred.ravel()
-        self.conf_mat = tf.confusion_matrix(y_true, y_pred, self.num_classes)
+        self.conf_mat = tf.math.confusion_matrix(labels=y_true, predictions=y_pred, num_classes=self.num_classes)
         self.conf_mat = np.asarray(self.conf_mat)
         self.conf_mat[:, 0] = 0
         self.conf_mat[0, :] = 0
@@ -66,11 +66,11 @@ class ClassIoU(Callback):
             tf.zeros([self.num_classes, self.num_classes]), tf.int32)
         for x, y_true in self.x.take(self.take):
             y_pred = self.model.predict(x)
-            y_true = tf.reshape(tf.argmax(y_true, axis=-1), [-1])
-            y_pred = tf.reshape(tf.argmax(y_pred, axis=-1), [-1])
+            y_true = tf.reshape(tf.argmax(input=y_true, axis=-1), [-1])
+            y_pred = tf.reshape(tf.argmax(input=y_pred, axis=-1), [-1])
             confusion_matrix = tf.add(
                 confusion_matrix,
-                tf.confusion_matrix(y_true, y_pred, self.num_classes))
+                tf.math.confusion_matrix(labels=y_true, predictions=y_pred, num_classes=self.num_classes))
 
         confusion_matrix = np.asarray(confusion_matrix)
         confusion_matrix[:, 0] = 0

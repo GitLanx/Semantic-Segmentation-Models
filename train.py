@@ -8,19 +8,19 @@ from utils import generate_images, get_dataset
 from metrics import Metric, ClassIoU
 from model_loader import load_model
 
-tf.enable_eager_execution()
+tf.compat.v1.enable_eager_execution()
 np.random.seed(1)
-tf.set_random_seed(1234)
+tf.compat.v1.set_random_seed(1234)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default='UNet', help='Model to train for')
-parser.add_argument('--train_data', type=str, default='', help='Path to training images')
-parser.add_argument('--train_labels', type=str, default='', help='Path to training labels')
-parser.add_argument('--val_data', type=str, default=None, help='Path to validation images, if not specified, val_data will sample from train_data')
-parser.add_argument('--val_labels', type=str, default=None, help='Path to validation labels, if not specified, val_labels will sample from train_labels')
+parser.add_argument('--train_data', type=str, default=r'D:\lx\Camvid\train', help='Path to training images')
+parser.add_argument('--train_labels', type=str, default=r'D:\lx\Camvid\trainannot', help='Path to training labels')
+parser.add_argument('--val_data', type=str, default=r'D:\lx\Camvid\val', help='Path to validation images, if not specified, val_data will sample from train_data')
+parser.add_argument('--val_labels', type=str, default=r'D:\lx\Camvid\valannot', help='Path to validation labels, if not specified, val_labels will sample from train_labels')
 parser.add_argument('--batch_size', type=int, default=4, help='Number of images in each batch')
 parser.add_argument('--epochs', type=int, default=10, help='Number of epochs')
-parser.add_argument('--n_classes', type=int, default=14, help='Number of classes, including void class or background')
+parser.add_argument('--n_classes', type=int, default=12, help='Number of classes, including void class or background')
 parser.add_argument('--resized_height', type=int, default=96, help='Height of resized input')
 parser.add_argument('--resized_width', type=int, default=96, help='Width of resized input')
 # parser.add_argument('--validation_step', type=int, default=5, help='How often to perform validation')
@@ -79,9 +79,9 @@ callbacks = [
 ]
 
 model.compile(
-    optimizer=tf.train.AdamOptimizer(0.0001),
+    optimizer=tf.compat.v1.train.AdamOptimizer(0.0001),
     loss='categorical_crossentropy',
-    metrics=[iou, acc])
+    metrics=['accuracy'])
 
 History = model.fit(
     train_dataset,
@@ -101,8 +101,8 @@ plt.xlabel('Epochs')
 plt.legend()
 
 plt.subplot(212)
-plt.plot(History.history['iou'], label='train_iou')
-plt.plot(History.history['val_iou'], label='val_iou')
+plt.plot(History.history['accuracy'], label='train_iou')
+plt.plot(History.history['val_accuracy'], label='val_iou')
 plt.title('train iou vs validation iou')
 plt.ylabel('mIoU')
 plt.xlabel('Epochs')

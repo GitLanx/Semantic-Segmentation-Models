@@ -55,12 +55,12 @@ def generate_images(model, input_image, target_image, plots=1):
     assert plots <= input_image.shape[
         0], "plots number should be less than batch size"
 
-    classes = target_image.shape[-1].value
+    classes = target_image.shape[-1]
     prediction = model.predict(input_image)
     plt.figure(figsize=(20, 20))
 
-    target_image = tf.argmax(target_image, axis=-1)
-    prediction = tf.argmax(prediction, axis=-1)
+    target_image = tf.argmax(input=target_image, axis=-1)
+    prediction = tf.argmax(input=prediction, axis=-1)
 
     for i in range(plots):
         plt.subplot(plots, 3, i * 3 + 1)
@@ -107,17 +107,16 @@ def load_image(filename, resized_shape):
     :param resized_shape: resize the images to proper size
     :returns: images
     """
-    image = tf.read_file(filename)
+    image = tf.io.read_file(filename)
     image = tf.cond(
-        tf.image.is_jpeg(image),
-        lambda: tf.image.decode_jpeg(image),
-        lambda: tf.image.decode_png(image))
+        pred=tf.image.is_jpeg(image),
+        true_fn=lambda: tf.image.decode_jpeg(image),
+        false_fn=lambda: tf.image.decode_png(image))
     image = tf.image.convert_image_dtype(image, tf.float32)
-    image = tf.image.resize_images(
+    image = tf.image.resize(
         image,
         size=resized_shape,
-        method=tf.image.ResizeMethod.BILINEAR,
-        align_corners=True)
+        method=tf.image.ResizeMethod.BILINEAR)
 
     return image
 
@@ -130,13 +129,12 @@ def load_label(filename, n_classes, resized_shape):
     :param resized_shape: resize the labels to proper size
     :returns: one-hot encoded labels
     """
-    label = tf.read_file(filename)
+    label = tf.io.read_file(filename)
     label = tf.image.decode_png(label)
-    label = tf.image.resize_images(
+    label = tf.image.resize(
         label,
         size=resized_shape,
-        method=tf.image.ResizeMethod.NEAREST_NEIGHBOR,
-        align_corners=True)
+        method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
     label = one_hot_encode(label, n_classes)
 
     return label
