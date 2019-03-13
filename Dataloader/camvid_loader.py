@@ -58,14 +58,14 @@ class CamVidLoader:
         dataset = tf.data.Dataset.from_tensor_slices((img_path, lbl_path))
         if self.split == 'train':
             dataset = dataset.shuffle(self.shuffle_size)
-            dataset = dataset.map(self.parse_function, num_parallel_calls=1)
+            dataset = dataset.map(self.parse_function, num_parallel_calls=4)
         elif self.split == 'val' or 'test':
-            dataset = dataset.map(self.parse_function, num_parallel_calls=1)
+            dataset = dataset.map(self.parse_function, num_parallel_calls=4)
 
         # if self.augmentations is not None:
         #     img, lbl = self.augmentations(img, lbl)
 
-        return dataset.batch(batch_size)
+        return dataset.batch(batch_size).prefetch(batch_size)
 
     def parse_function(self, x, y):
         image = tf.io.read_file(x)
