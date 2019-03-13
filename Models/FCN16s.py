@@ -5,7 +5,7 @@ from tensorflow.python.keras.applications import VGG16
 from tensorflow.python.keras.models import Model
 
 
-class FCN16(Model):
+class FCN16s(Model):
     def __init__(self, classes, input_shape):
         Model.__init__(self)
         self.classes = classes
