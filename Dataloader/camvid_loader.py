@@ -1,6 +1,8 @@
 import tensorflow as tf
 import os
 import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
@@ -20,6 +22,20 @@ class CamVidLoader:
         'bicyclist',
         'void'
     ])
+    palette = [
+               128, 128, 128,
+               128, 0, 0,
+               192, 192, 128,
+               128, 64, 128,
+               0, 0, 192,
+               128, 128, 0,
+               192, 128, 128,
+               64, 64, 128,
+               64, 0, 128,
+               64, 64, 0,
+               0, 128, 192,
+               0, 0, 0
+              ]
 
     def __init__(
         self,
@@ -92,3 +108,22 @@ class CamVidLoader:
         label = tf.one_hot(label, depth=self.n_classes)
 
         return image / 255.0, label
+
+
+if __name__ == '__main__':
+    loader = CamVidLoader('D:/lx/Camvid')
+    dataset = loader.get_dataset(4)
+    fig, axes = plt.subplots(2, 4, subplot_kw={'xticks': [], 'yticks': []})
+    fig.subplots_adjust(left=0.03, right=0.97, hspace=0.2, wspace=0.05)
+    for img, label in dataset.take(1):
+        label = np.argmax(label, axis=-1)
+        for i in range(2):
+            axes[0, i * 2].imshow(img[i])
+            lb = label[i].astype('uint8')
+            lb = Image.fromarray(lb)
+            lb.putpalette(loader.palette)
+            axes[0, i * 2 + 1].imshow(lb)
+        for i in range(2):
+            axes[1, i * 2].imshow(img[i + 2])
+            axes[1, i * 2 + 1].imshow(label[i + 2])
+        plt.show()
