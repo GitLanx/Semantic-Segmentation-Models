@@ -114,8 +114,7 @@ class Trainer:
             val_loss += loss.numpy()
             target = target.numpy()
             score = score.numpy()
-            for img, lt, lp in zip(data, target, score.max(-1)):
-                img, lt = self.val_dataset.dataset.untransform(img, lt)
+            for img, lt, lp in zip(data, np.argmax(target, -1), np.argmax(score, -1)):
                 label_trues.append(lt)
                 label_preds.append(lp)
                 # if len(visualizations) < 9:
