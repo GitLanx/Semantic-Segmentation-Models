@@ -131,7 +131,7 @@ class Trainer:
         out_file = osp.join(out, 'epoch%08d.jpg' % self.epoch)
         # scipy.misc.imsave(out_file, get_tile_image(visualizations))
 
-        val_loss /= len(self.val_size)
+        val_loss /= self.val_size
 
         with open(osp.join(self.out, 'log.csv'), 'a') as f:
             elapsed_time = (
