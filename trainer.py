@@ -146,14 +146,11 @@ class Trainer:
         is_best = mean_iu > self.best_mean_iu
         if is_best:
             self.best_mean_iu = mean_iu
+            self.model.save(osp.join(self.out, 'best_model.h5'))
 
-        ckpt = tf.train.Checkpoint(optimizer=self.optim,
-                                   model=self.model)
-        ckpt.save(osp(self.out, 'checkpoint'))
-
-        if is_best:
-            shutil.copy(osp.join(self.out, 'checkpoint.pth.tar'),
-                        osp.join(self.out, 'model_best.pth.tar'))
+        # if is_best:
+            # shutil.copy(osp.join(self.out, 'checkpoint.pth.tar'),
+            #             osp.join(self.out, 'model_best.pth.tar'))
 
     def train(self):
         for epoch in tqdm.trange(self.epoch, self.epochs + 1,
