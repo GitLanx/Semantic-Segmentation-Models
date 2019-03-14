@@ -47,7 +47,7 @@ class CamVidLoader:
         self.root = root
         self.split = split
         self.augmentations = augmentations
-        self.n_classes = 12
+        self.n_classes = 11
         self.img_size = img_size
 
         path = os.path.join(self.root, self.split + ".txt")
