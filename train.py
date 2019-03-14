@@ -6,8 +6,6 @@ import yaml
 import datetime
 import numpy as np
 import tensorflow as tf
-from utils import generate_images
-from metrics import Metric, ClassIoU
 from Models import load_model
 from Dataloader import get_loader
 from trainer import Trainer
@@ -63,12 +61,12 @@ start_epoch = 1
 
 # tf.keras.utils.plot_model(model, to_file=args.model + '.png')
 
-callbacks = [
+# callbacks = [
     # tf.keras.callbacks.EarlyStopping(patience=5, monitor='val_loss'),
     # tf.keras.callbacks.LearningRateScheduler(
     #     lambda epoch: 0.0001 + 0.02 * 0.5**(1 + epoch), verbose=True),
-    tf.keras.callbacks.TensorBoard(log_dir='logs', write_graph=True),
-]
+    # tf.keras.callbacks.TensorBoard(log_dir='logs', write_graph=True),
+# ]
 
 # 3. optimizer
 if args.optim.lower() == 'sgd':
@@ -93,5 +91,5 @@ trainer.train()
 # if __name__ == '__main__':
 #     main()
 
-for image, label in val_dataset.take(1):
-    generate_images(model, image, label, plots=1)
+# for image, label in val_dataset.take(1):
+#     generate_images(model, image, label, plots=1)
